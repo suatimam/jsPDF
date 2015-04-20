@@ -170,11 +170,11 @@ var jsPDF = (function(global) {
 			lineHeightProportion = options.lineHeight || 1.15,
 			lineWidth            = options.lineWidth  || 0.200025, // 2mm
 			objectNumber =  0,  // 'n' Current object number
-            rootObjectNumber = null,
-            infoObjectNumber = null,
-            pagesObjectNumber = null,
-            resourcesObjectNumber = null,
-            pageObjNumbers = [],
+			rootObjectNumber = null,
+			infoObjectNumber = null,
+			pagesObjectNumber = null,
+			resourcesObjectNumber = null,
+			pageObjNumbers = [],
 			outToPages   = !1,  // switches where out() prints. outToPages true = push to pages obj. outToPages false = doc builder content
 			offsets      = [],  // List of offsets. Activated and reset by buildDocument(). Pupulated by various calls buildDocument makes.
 			fonts        = {},  // collection of font objects, where key is fontKey - a dynamically created label for a given font.
@@ -244,7 +244,7 @@ var jsPDF = (function(global) {
 			return objectNumber;
 		},
 		newObjectDeferredBegin = function(oid) {
-            offsets[oid] = content_length;
+			offsets[oid] = content_length;
 		},
 		putStream = function(str) {
 			out('stream');
@@ -261,19 +261,19 @@ var jsPDF = (function(global) {
 
 			// outToPages = false as set in endDocument(). out() writes to content.
 
-            pagesObjectNumber = newObjectDeferred();
-            resourcesObjectNumber = newObjectDeferred();
+			pagesObjectNumber = newObjectDeferred();
+			resourcesObjectNumber = newObjectDeferred();
 
 			for (n = 1; n <= page; n++) {
-                newObjectDeferredBegin(pageObjNumbers[n]);
-                out(pageObjNumbers[n] + ' 0 obj');
+				newObjectDeferredBegin(pageObjNumbers[n]);
+				out(pageObjNumbers[n] + ' 0 obj');
 				wPt = (pageWidth = pagedim[n].width) * k;
 				hPt = (pageHeight = pagedim[n].height) * k;
 				out('<</Type /Page');
 				out('/Parent ' + pagesObjectNumber + ' 0 R');
 				out('/Resources ' + resourcesObjectNumber + ' 0 R');
 				out('/MediaBox [0 0 ' + f2(wPt) + ' ' + f2(hPt) + ']');
-                objId = newObjectDeferred();
+				objId = newObjectDeferred();
 				out('/Contents ' + objId + ' 0 R');
 				// Added for annotation plugin
 				events.publish('putPage', {pageNumber:n,page:pages[n]});
@@ -282,8 +282,8 @@ var jsPDF = (function(global) {
 
 				// Page content
 				p = pages[n].join('\n');
-                newObjectDeferredBegin(objId);
-                out(objId + ' 0 obj');
+				newObjectDeferredBegin(objId);
+				out(objId + ' 0 obj');
 				if (compress) {
 					arr = [];
 					i = p.length;
@@ -307,11 +307,11 @@ var jsPDF = (function(global) {
 				out('endobj');
 			}
 
-            newObjectDeferredBegin(pagesObjectNumber);
+			newObjectDeferredBegin(pagesObjectNumber);
 			out(pagesObjectNumber + ' 0 obj');
 			out('<</Type /Pages');
 			var kids = '/Kids [';
-            for (i = 1; i < pageObjNumbers.length; i++) {
+			for (i = 1; i < pageObjNumbers.length; i++) {
 				kids += pageObjNumbers[i] + ' 0 R ';
 			}
 			out(kids + ']');
@@ -358,7 +358,7 @@ var jsPDF = (function(global) {
 			putFonts();
 			events.publish('putResources');
 			// Resource dictionary
-            newObjectDeferredBegin(resourcesObjectNumber);
+			newObjectDeferredBegin(resourcesObjectNumber);
 			out(resourcesObjectNumber + ' 0 obj');
 			out('<<');
 			putResourceDictionary();
@@ -638,7 +638,7 @@ var jsPDF = (function(global) {
 		},
 		putCatalog = function() {
 			out('/Type /Catalog');
-            out('/Pages ' + pagesObjectNumber +' 0 R');
+			out('/Pages ' + pagesObjectNumber +' 0 R');
 			// PDF13ref Section 7.2.1
 			if (!zoomMode) zoomMode = 'fullwidth';
 			switch(zoomMode) {
@@ -708,7 +708,7 @@ var jsPDF = (function(global) {
 			};
 			_setPage(page);
 
-            pageObjNumbers[page] = newObjectDeferred();
+			pageObjNumbers[page] = newObjectDeferred();
 		},
 		_addPage = function() {
 			beginPage.apply(this, arguments);
@@ -797,7 +797,7 @@ var jsPDF = (function(global) {
 			for (i = 1; i <= objectNumber; i++) {
 				var offset = offsets[i];
 				if (typeof offset === 'function'){
-                    out((p + offsets[i]()).slice(-10) + ' 00000 n ');
+					out((p + offsets[i]()).slice(-10) + ' 00000 n ');
 				}else{
 					out((p + offsets[i]).slice(-10) + ' 00000 n ');					
 				}
@@ -813,9 +813,9 @@ var jsPDF = (function(global) {
 
 			outToPages = true;
 
-            // wrap into an object to allow changes by a plugin
-            var pdf = {content: content.join('\n')};
-            events.publish('buildDocumentEnd', pdf);
+			// wrap into an object to allow changes by a plugin
+			var pdf = {content: content.join('\n')};
+			events.publish('buildDocumentEnd', pdf);
 			return pdf.content;
 		},
 		getStyle = function(style) {
@@ -984,16 +984,16 @@ var jsPDF = (function(global) {
 			'out' : out,
 			'f2' : f2,
 			'getPageInfo' : function(pageNumberOneBased){
-                var objId = pageObjNumbers[pageNumberOneBased];
+				var objId = pageObjNumbers[pageNumberOneBased];
 				return {objId:objId, pageNumber:pageNumberOneBased};
 			},
 			'getCurrentPageInfo' : function(){
 				var objId = pageObjNumbers[page];
 				return {objId:objId, pageNumber:currentPage};
 			},
-            'getContentLenght' : function() {
-                return content_length;
-            }
+			'getContentLenght' : function() {
+				return content_length;
+			}
 		};
 
 		/**
@@ -1058,7 +1058,7 @@ var jsPDF = (function(global) {
 			layoutMode = layout;
 			pageMode   = pmode;
 			return this;
-		},
+		};
 
 		/**
 		 * Adds text to page. Supports adding multiline text when 'text' argument is an Array of Strings.
