@@ -29,10 +29,10 @@
  */
 
 /*
-    Destination Magnification Factors
-    See PDF 1.3 Page 386 for meanings and options
-    
-    [supported]
+	Destination Magnification Factors
+	See PDF 1.3 Page 386 for meanings and options
+	
+	[supported]
 	XYZ (options; left top zoom)
 	Fit (no options)
 	FitH (options: top)
@@ -55,10 +55,6 @@
 		 */
 		annotations : [],
 
-		f2 : function(number) {
-			return number.toFixed(2);
-		},
-
 		notEmpty : function(obj) {
 			if (typeof obj != 'undefined') {
 				if (obj != '') {
@@ -80,70 +76,72 @@
 			'putPage', function(info) {
 				var pageAnnos = this.annotationPlugin.annotations[info.pageNumber];
 
-				var found = false;
-				for (var a = 0; a < pageAnnos.length; a++) {
-					var anno = pageAnnos[a];
-					if (anno.type === 'link') {
-						if (annotationPlugin.notEmpty(anno.options.url) || annotationPlugin.notEmpty(anno.options.pageNumber)) {
-							found = true;
-							break;
-						}
-					}
-				}
-				if (found == false) {
-					return;
-				}
+				var f2 = this.internal.f2,
+					lines = [];
 
-				this.internal.write("/Annots [");
-				var f2 = this.annotationPlugin.f2;
 				for (var a = 0; a < pageAnnos.length; a++) {
-					var anno = pageAnnos[a];
-
-					var k = this.internal.scaleFactor;
-					var pageHeight = this.internal.pageSize.height;
-					//var pageHeight = this.internal.pageSize.height * this.internal.scaleFactor;
-					var rect = "/Rect [" + f2(anno.x * k) + " " + f2((pageHeight - anno.y) * k) + " " + f2(anno.x + anno.w * k) + " " + f2(pageHeight - (anno.y + anno.h) * k) + "] ";
+					var anno = pageAnnos[a],
+						type = anno.type;
 
 					var line = '';
-					if (anno.options.url) {
-						line = '<</Type /Annot /Subtype /Link ' + rect + '/Border [0 0 0] /A <</S /URI /URI (' + anno.options.url + ') >>';
-					} else if (anno.options.pageNumber) {
-						// first page is 0
-						var info = this.internal.getPageInfo(anno.options.pageNumber);
-						line = '<</Type /Annot /Subtype /Link ' + rect + '/Border [0 0 0] /Dest [' + info.objId + " 0 R";
-						anno.options.magFactor = anno.options.magFactor || "XYZ";
-						switch (anno.options.magFactor) {
-						case 'Fit':
-							line += ' /Fit]';
-							break;
-						case 'FitH':
-							anno.options.top = anno.options.top || f2(pageHeight * k);
-							line += ' /FitH ' + anno.options.top + ']';
-							break;
-						case 'FitV':
-							anno.options.left = anno.options.left || 0;
-							line += ' /FitV ' + anno.options.left + ']';
-							break;
-						case 'XYZ':
-						default:
-							anno.options.top = anno.options.top || f2(pageHeight * k);
-							anno.options.left = anno.options.left || 0;
-							// 0 or null zoom will not change zoom factor
-							if (typeof anno.options.zoom === 'undefined'){
-								anno.options.zoom = 0;
+					switch (type) {
+						case 'link':
+							var k = this.internal.scaleFactor,
+								pageHeight = this.internal.pageSize.height,
+								rect = "/Rect [" + f2(anno.x * k) + " " + f2((pageHeight - anno.y) * k) + " " + f2(anno.x + anno.w * k) + " " + f2(pageHeight - (anno.y + anno.h) * k) + "] ";
+
+							if (annotationPlugin.notEmpty(anno.options.url)) {
+								line = '<</Type /Annot /Subtype /Link ' + rect + '/Border [0 0 0] /A <</S /URI /URI (' + anno.options.url + ') >>>>';
+							} else if (annotationPlugin.notEmpty(anno.options.pageNumber)) {
+								// first page is 0
+								var pageInfo = this.internal.getPageInfo(anno.options.pageNumber);
+								line = '<</Type /Annot /Subtype /Link ' + rect + '/Border [0 0 0] /Dest [' + pageInfo.objId + " 0 R";
+								anno.options.magFactor = anno.options.magFactor || "XYZ";
+								switch (anno.options.magFactor) {
+									case 'Fit':
+										line += ' /Fit]';
+										break;
+									case 'FitH':
+										anno.options.top = anno.options.top || f2(pageHeight * k);
+										line += ' /FitH ' + anno.options.top + ']';
+										break;
+									case 'FitV':
+										anno.options.left = anno.options.left || 0;
+										line += ' /FitV ' + anno.options.left + ']';
+										break;
+									case 'XYZ':
+									default:
+										anno.options.top = anno.options.top || f2(pageHeight * k);
+										anno.options.left = anno.options.left || 0;
+										// 0 or null zoom will not change zoom factor
+										if (typeof anno.options.zoom === 'undefined'){
+											anno.options.zoom = 0;
+										}
+										line += ' /XYZ ' + anno.options.left + ' ' +  anno.options.top + ' ' + anno.options.zoom + ']';
+										break;
+								}
+								line += '>>';
+							} else {
+								// TODO error - should not be here
 							}
-							line += ' /XYZ ' + anno.options.left + ' ' +  anno.options.top + ' ' + anno.options.zoom + ']';
 							break;
-						}
-					} else {
-						// TODO error - should not be here
+
+						case 'widget':
+							anno.objId = this.internal.newObjectDeferred();
+							line += anno.objId + ' 0 R';
+							break;
 					}
+
 					if (line != '') {
-						line += " >>";
-						this.internal.write(line);
+						lines.push(line);
 					}
 				}
-				this.internal.write("]");
+
+				if (lines.length > 0) {
+					this.internal.write("/Annots [");
+					this.internal.write(lines.join("\n"));
+					this.internal.write("]");
+				}
 			}
 	]);
 
